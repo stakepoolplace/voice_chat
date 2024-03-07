@@ -1,49 +1,42 @@
 import sys
 import platform
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QCheckBox, QTextEdit, QLabel, QRadioButton, QGroupBox, QHBoxLayout, QSlider
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QRadioButton, QGroupBox, QHBoxLayout, QSlider, QTextEdit
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
-
-# Adapter les importations en fonction de ton script
 from io import BytesIO
 import os
 import subprocess
 from gtts import gTTS
 import numpy as np
-import pygame
 import speech_recognition as sr
 import whisper
 import torch
+# Les importations de modules externes pour la reconnaissance vocale, synthèse vocale et traitement de l'audio
 from groq import Groq
-from datetime import datetime, timedelta
-from queue import Queue
-from time import sleep
 from elevenlabs import generate, play
 from openai import OpenAI
-# Importe ici toutes les autres dépendances nécessaires de ton script original
-llm = 'openai'
-tts = 'google'
-model = 'small'
-record_timeout = 5
-energy_threshold = 800
-prompt = "Tu es un assistant français, tes reponses sont courtes, ton nom est Josh."
+
+# Configuration initiale du script
+llm = 'openai'  # Choix du modèle de langage (OpenAI)
+tts = 'google'  # Choix de la technologie de synthèse vocale (Google TTS)
+model = 'small'  # Choix du modèle Whisper pour la reconnaissance vocale
+record_timeout = 5  # Temps maximum d'enregistrement audio en secondes
+energy_threshold = 800  # Seuil d'énergie pour le microphone
+prompt = "Tu es un assistant français, tes réponses sont courtes, ton nom est Josh."  # Message d'introduction
+
+# Définition des clés API pour les services utilisés
 os.environ["OPENAI_API_KEY"] = ""
 os.environ["ELEVENLABS_API_KEY"] = ""
 os.environ["GROQ_API_KEY"] = ""
-messages = []
-# Assure-toi d'adapter et d'intégrer les fonctions de ton script ici, pour qu'elles soient compatibles avec PyQt5
+
+messages = []  # Stockage des messages pour le contexte de la conversation
+
 def generate_response_via_groq(input_text):
-
+    """
+    Génère une réponse en utilisant l'API Groq.
+    """
     global messages
-
-    client = Groq(
-        api_key=os.environ.get("GROQ_API_KEY"),
-    )
-
-    messages.append({
-                "role": "user",
-                "content": input_text,
-            })
-    
+    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    messages.append({"role": "user", "content": input_text})
     chat_completion = client.chat.completions.create(
         messages=messages,
         model="mixtral-8x7b-32768",
@@ -54,38 +47,23 @@ def generate_response_via_groq(input_text):
         stream=False,
     )
     response = chat_completion.choices[0].message.content
-
-    messages.append({
-        "role": "assistant",
-        "content": response
-    })
-
+    messages.append({"role": "assistant", "content": response})
     return response
 
 def generate_response_via_openai(text):
-
+    """
+    Génère une réponse en utilisant l'API OpenAI.
+    """
     global messages
     openai = OpenAI()
-
-    messages.append({
-            "role": "user",
-            "content": text,
-        })
-
+    messages.append({"role": "user", "content": text})
     chat_completion = openai.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=messages
     )
-
     response = chat_completion.choices[0].message.content
-
-    messages.append({
-        "role": "assistant",
-        "content": response
-    })
-
+    messages.append({"role": "assistant", "content": response})
     return response
-
 
 def find_last_punctuation(text, punctuations, eleven_labs_max_length):
     last_index = -1
@@ -96,23 +74,15 @@ def find_last_punctuation(text, punctuations, eleven_labs_max_length):
     return last_index
 
 def tts_elevenlabs(text, eleven_labs_max_length):
-    
-    # Tableau des caractères de ponctuation à vérifier
+    """
+    Utilise ElevenLabs pour la synthèse vocale.
+    """
     punctuations = ['.', '?', '!']
-
-    # Vérifier si le dernier caractère n'est pas dans le tableau des ponctuations
     if text[-1] not in punctuations:
-        text += "."  # Ajoute un point si le dernier caractère n'est pas une ponctuation
-
-
+        text += "."
     if len(text) > eleven_labs_max_length:
         end_index = find_last_punctuation(text, punctuations, eleven_labs_max_length)
-        
-        if end_index != -1:
-            text = text[:end_index + 1]
-        else:
-            text = text[:eleven_labs_max_length]
-
+        text = text[:end_index + 1] if end_index != -1 else text[:eleven_labs_max_length]
     audio = generate(
         api_key=os.environ.get("ELEVENLABS_API_KEY"),
         voice="Josh",
@@ -122,44 +92,51 @@ def tts_elevenlabs(text, eleven_labs_max_length):
     )
     play(audio)
 
-def tts_pygame(text):
+def tts_gtts(text):
+    """
+    Utilise gTTS et ffmpeg pour la synthèse vocale.
+    """
     mp3_fp = BytesIO()
     tts = gTTS(text=text, lang='fr')
     tts.write_to_fp(mp3_fp)
-
-    # Remettre le curseur au début du fichier
     mp3_fp.seek(0)
-
     command = ['ffplay', '-nodisp', '-autoexit', '-i', '-']
     process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    process.stdin.write(mp3_fp.getvalue())  # Utilise getvalue() pour obtenir le contenu complet du BytesIO
+    process.stdin.write(mp3_fp.getvalue())
     process.stdin.close()
     process.wait()
 
 def tts_mac(text):
+    """
+    Utilise la fonctionnalité 'say' de macOS pour la synthèse vocale.
+    """
     subprocess.run(['say', text], capture_output=True, text=True)
 
-
-
 class WorkerThread(QThread):
-
+    """
+    Thread de travail pour la reconnaissance vocale en arrière-plan.
+    """
     update_transcription = pyqtSignal(str)
     finished = pyqtSignal()
 
     def __init__(self):
         super(WorkerThread, self).__init__()
-        print(f" WORKER llm {llm} - tts {tts} - model {model}")
         DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-        self.audio_model = whisper.load_model(model, device=DEVICE) 
+        self.audio_model = whisper.load_model(model, device=DEVICE)
+
 
     def stop(self):
+        """
+        Arrête l'écoute en arrière-plan.
+        """
         if hasattr(self, 'stop_listening'):
             self.stop_listening(wait_for_stop=False)
             self.finished.emit()
 
-
     def run(self):
-
+        """
+        Exécute la reconnaissance vocale en continu jusqu'à l'arrêt du thread.
+        """
         recognizer = sr.Recognizer()
         microphone = sr.Microphone(sample_rate=16000)
 
@@ -189,7 +166,7 @@ class WorkerThread(QThread):
                         elif(tts == "mac"):
                             tts_mac(response)
                         else:
-                            tts_pygame(response)
+                            tts_gtts(response)
                 
                 except Exception as e:
                     error_message = f"Erreur: {str(e)}"
@@ -198,7 +175,8 @@ class WorkerThread(QThread):
         self.stop_listening = recognizer.listen_in_background(source, record_callback, phrase_time_limit=record_timeout)
         self.update_transcription.emit("Parlez...")
 
-
+# La classe MainWindow et d'autres définitions de l'interface utilisateur suivent ici...
+# Le code de l'interface utilisateur inclut la configuration des widgets, les gestionnaires d'événements et la logique pour démarrer/arrêter l'écoute.
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
