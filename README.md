@@ -16,7 +16,7 @@ Developed by Eric Marchand, this script is a gift to the AI enthusiasts' communi
 To run this script on your local machine, follow these steps:
 
 1. Clone this repository:
-git clone [<repository-url>](https://github.com/stakepoolplace/voice_chat/)
+git clone [<repository-url>]([https://github.com/stakepoolplace/voice_chat/](https://github.com/stakepoolplace/voice_chat.git))
 
 2. Navigate to the project directory:
 cd voice_chat
