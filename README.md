@@ -33,6 +33,19 @@ Upon launching the application, you'll be greeted with a simple and intuitive gr
 - Stop the voice chat at any time with the "Stop Listening" button.
 - Adjust settings such as the choice between Google TTS and ElevenLabs, and Whisper model configurations according to your preferences.
 
+### TODO
+Separating the GUI part and the data processing into two separate files in Python. Here's how:
+
+**GUI File (`gui.py`):** Contains the class for the user interface, using PyQt5 or any other GUI framework. You define the window, widgets, and layout here.
+
+**Processing File (`processing.py`):** Contains the processing logic, such as voice recognition and speech synthesis. You define functions or classes that perform data processing here.
+
+To link them, you can:
+
+- **Import the processing file into the GUI file:** Use `from processing import MyProcessingClass` to access your processing functions from your user interface.
+- **Use signals and slots (in the case of PyQt5):** to connect user interface events (like a button click) to data processing actions. You trigger a processing action which, once completed, can update the user interface via a signal.
+
+
 ### Contributing
 Contributions to the voice_chat project are welcome! Whether it's through submitting bug reports, suggesting enhancements, or adding new features, your input is valuable. Please feel free to fork the repository and submit pull requests.
 
