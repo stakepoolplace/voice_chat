@@ -61,3 +61,4 @@ A heartfelt thanks to the creators of OpenAi Whisper, Google TTS, and ElevenLabs
 ---
 
 Eric Marchand's dedication to sharing this project highlights the spirit of collaboration and innovation in the AI community. Enjoy exploring voice_chat, and let it inspire your next project!
+Do you have insights in IA ? come to share it here : https://www.reddit.com/r/AI_for_science/
