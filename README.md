@@ -28,7 +28,7 @@ cd voice_chat
 pip install -r requirements.txt
 
 4. Run the script:
-python main.py
+python voice_chat.py
 
 ### Usage
 Upon launching the application, you'll be greeted with a simple and intuitive graphical interface. From there, you can:
