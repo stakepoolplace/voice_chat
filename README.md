@@ -1,5 +1,5 @@
 # voice_chat
-## A simple voice chat with OpenAi Whisper, Google TTS, ElevenLabs
+## A voice chat with OpenAi Whisper, Google TTS, ElevenLabs
 
 ![GUI Preview](gui.png)
 
