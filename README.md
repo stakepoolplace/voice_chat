@@ -5,7 +5,7 @@
 
 Developed by Eric Marchand, this script is a gift to the AI enthusiasts' community. The voice_chat project embodies a straightforward yet powerful implementation of modern AI technologies for voice interactions. Utilizing OpenAi's Whisper for voice recognition, Google's Text-to-Speech (TTS) for voice output, and ElevenLabs for an alternative TTS option, it offers a seamless experience for users to engage in voice chat.
 
-You can use it without any subscription with Groq and gTTS (Google Text To Speech) or the better is OpenAI (GPT3.5 turbo feel free to change the model, subscribe and feed the OPENAI-_API_KEY) with ElevenLabs (free plan give u 60000 characters/month).
+You can use it without any subscription with Groq and gTTS (Google Text To Speech) or the better is OpenAI (GPT3.5 turbo feel free to change the model, subscribe and feed the OPENAI_API_KEY) with ElevenLabs (free plan give u 60000 characters/month).
 
 ### Features
 - **Voice Recognition with Whisper**: Leverage the cutting-edge Whisper model for accurate speech-to-text conversion.
